@@ -19,8 +19,8 @@ client.on("interactionCreate", async (interaction) => {
   if (interaction.commandName === "cf") {
     await interaction.deferReply();
     
-    const contestId = interaction.options.getInteger("contestid");
-    const forumChannelName = interaction.options.getString("forumchannel");
+    const contestId = interaction.options.getInteger("contest");
+    const forumChannelName = interaction.options.getString("forum");
 
     try {
       const response = await fetch(`https://codeforces.com/api/contest.standings?contestId=${contestId}&from=1&count=1`);
@@ -47,7 +47,11 @@ client.on("interactionCreate", async (interaction) => {
 
       console.log("Problems in the round: ", problemMap);
 
-      const forumChannel = client.channels.cache.get("1256217959580438661");
+      //const forumChannel = client.channels.cache.get("1256217959580438661");
+      const forumChannel = interaction.guild.channels.cache.find(
+        (channel) => channel.name === forumChannelName && channel.type === 15 // Forum channel type
+      );
+
       if (!forumChannel) {
         await interaction.reply(`Forum channel "${forumChannelName}" not found.`);
         return;

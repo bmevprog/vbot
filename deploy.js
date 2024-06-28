@@ -11,13 +11,13 @@ const commands = [
     description: "Post all threads for a Codeforces contest",
     options: [
       {
-        name: "contestid",
+        name: "contest",
         type: 4, // integer
         description: "The ID of the Codeforces contest",
         required: true,
       },
       {
-        name: "forumchannel",
+        name: "forum",
         type: 3, // string
         description: "The name of the forum channel to post in",
         required: true,
