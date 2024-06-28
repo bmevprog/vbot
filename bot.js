@@ -71,7 +71,7 @@ client.on("interactionCreate", async (interaction) => {
 
         const thread = await forumChannel.threads.create({
           name: `CF ${contest.id}${baseIndex} - ${problem.baseName}`,
-          message: { content: `Send your code and discuss in the comments!`, embeds: [infoEmbed] },
+          message: { content: `Send your code and discuss in the comments! :)`, embeds: [infoEmbed] },
           appliedTags: [],
           autoArchiveDuration: 1440,
           reason: '',
