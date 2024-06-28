@@ -1,4 +1,4 @@
-import { Client, EmbedBuilder, GatewayIntentBits } from "discord.js";
+import { Client, EmbedBuilder, GatewayIntentBits, Partials } from "discord.js";
 
 import dotenv from "dotenv";
 import fetch from "node-fetch";
@@ -6,14 +6,18 @@ import fetch from "node-fetch";
 dotenv.config({ path: ".env" });
 const { DISCORD_TOKEN } = process.env;
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
-
-client.once("ready", () => {
-  console.log("Bot is ready!");
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
+  partials: [Partials.Message, Partials.GuildScheduledEvent, Partials.Channel, Partials.Reaction],
 });
 
+client.once("ready", () => { console.log("Bot is ready!"); });
+
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isChatInputCommand()) {
+    console.log("Interaction is not a chat input command.");
+    return;
+  }
 
   console.log(`Received command: ${interaction.commandName}`);
 
@@ -56,10 +60,8 @@ client.on("interactionCreate", async (interaction) => {
 
       console.log("Constructed problem map:", problemMap);
 
-      const forumChannel = interaction.guild.channels.cache.find(
-        (channel) => channel.name === forumChannelName && channel.type === "GUILD_FORUM"
-      );
-
+      const forumChannel = client.channels.cache.get("1256217959580438661");
+     
       if (!forumChannel) {
         console.error(`Forum channel "${forumChannelName}" not found.`);
         await interaction.reply(`Forum channel "${forumChannelName}" not found.`);
@@ -68,7 +70,7 @@ client.on("interactionCreate", async (interaction) => {
 
       console.log(`Found forum channel: ${forumChannel.name}`);
 
-      problemMap.forEach(async (value, key) => {
+      for (const [key, value] of problemMap.entries()) {
         const links = value.indices
           .map((index) => `https://codeforces.com/contest/${contestId}/problem/${index}`)
           .join(" / ");
@@ -88,16 +90,14 @@ client.on("interactionCreate", async (interaction) => {
 
         const thread = await forumChannel.threads.create({
           name: `${value.name}`,
+          message: { content: `Discussion thread for ${value.name}`, embeds: [infoEmbed] },
+          appliedTags: [], // Add tag IDs if needed
           autoArchiveDuration: 60,
           reason: `Discussion thread for ${value.name}`,
         });
 
         console.log(`Thread created: ${thread.name}`);
-
-        await thread.send({ embeds: [infoEmbed] });
-
-        console.log(`Posted embed in thread: ${thread.name}`);
-      });
+      }
 
       await interaction.reply(`Contest information posted in ${forumChannelName}.`);
       console.log(`Posted contest information in ${forumChannelName}.`);
