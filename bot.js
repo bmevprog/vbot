@@ -17,6 +17,8 @@ client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   if (interaction.commandName === "cf") {
+    await interaction.deferReply();
+    
     const contestId = interaction.options.getInteger("contestid");
     const forumChannelName = interaction.options.getString("forumchannel");
 
@@ -51,6 +53,7 @@ client.on("interactionCreate", async (interaction) => {
         return;
       }
 
+      let threads = [];
       for (const [baseIndex, problem] of problemMap.entries()) {
         
         const infoEmbed = new EmbedBuilder()
@@ -76,9 +79,11 @@ client.on("interactionCreate", async (interaction) => {
           autoArchiveDuration: 1440,
           reason: '',
         });
+
+        threads.push(`- ${thread}`);
       }
       
-      await interaction.reply(`Contest information posted in ${forumChannelName}.`);
+      await interaction.editReply(`Threads for ${contest.name}:` + "\n" + threads.join("\n"));
       
     } catch (error) {
       console.error("Error fetching contest data:", error);
