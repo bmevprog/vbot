@@ -34,12 +34,13 @@ client.on("interactionCreate", async (interaction) => {
 
       problems.forEach((problem) => {
         const baseIndex = problem.index.replace(/[0-9]/g, "").trim();
-        const baseName = problem.name.replace(/ *\([^)]*\) */g, "");
+        const baseName = problem.name.match(/^[^(]+/g)[0].trim();
+        const subName = (problem.name.match(/\(([^)]+)\)/) || [])[1] || baseName;
 
         if (!problemMap.has(baseIndex)) {
           problemMap.set(baseIndex, { baseName: baseName, subproblems: [] });
         }
-        problemMap.get(baseIndex).subproblems.push({name: problem.name, index: problem.index });
+        problemMap.get(baseIndex).subproblems.push({name: subName, index: problem.index });
       });
 
       console.log("Problems in the round: ", problemMap);
@@ -57,11 +58,15 @@ client.on("interactionCreate", async (interaction) => {
           .setTitle(problem.baseName)
           .setFooter({ text: contest.name });
 
-        for (const subproblem of problem.subproblems) {
-          infoEmbed.addFields({
-            name: subproblem.name,
-            value: `https://codeforces.com/contest/${contest.id}/problem/${subproblem.index}`,
-          });
+        if (problem.subproblems.length > 1) {
+          for (const subproblem of problem.subproblems) {
+            infoEmbed.addFields({
+              name: subproblem.name,
+              value: `https://codeforces.com/contest/${contest.id}/problem/${subproblem.index}`,
+            });
+          }
+        } else {
+          infoEmbed.setDescription(`https://codeforces.com/contest/${contest.id}/problem/${problem.subproblems[0].index}`);
         }
 
         const thread = await forumChannel.threads.create({
@@ -72,10 +77,10 @@ client.on("interactionCreate", async (interaction) => {
           reason: '',
         });
       }
+      
       await interaction.reply(`Contest information posted in ${forumChannelName}.`);
       
     } catch (error) {
-      
       console.error("Error fetching contest data:", error);
       await interaction.reply("An error occurred while fetching the contest data.");
     }
