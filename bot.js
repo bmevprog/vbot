@@ -25,6 +25,7 @@ client.on("interactionCreate", async (interaction) => {
     try {
       const response = await fetch(`https://codeforces.com/api/contest.standings?contestId=${contestId}&from=1&count=1`);
       const data = await response.json();
+      console.log(data);
 
       if (data.status !== "OK") {
         await interaction.reply("Failed to retrieve contest data.");
