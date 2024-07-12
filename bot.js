@@ -28,7 +28,7 @@ client.on("interactionCreate", async (interaction) => {
       console.log(data);
 
       if (data.status !== "OK") {
-        await interaction.reply("Failed to retrieve contest data.");
+        await interaction.editReply("Failed to retrieve contest data.");
         return;
       }
 
@@ -48,15 +48,18 @@ client.on("interactionCreate", async (interaction) => {
 
       console.log("Problems in the round: ", problemMap);
 
-      //const forumChannel = client.channels.cache.get("1256217959580438661");
       const forumChannel = interaction.guild.channels.cache.find(
         (channel) => channel.name === forumChannelName && channel.type === 15 // Forum channel type
       );
 
       if (!forumChannel) {
-        await interaction.reply(`Forum channel "${forumChannelName}" not found.`);
+        await interaction.editReply(`Forum channel "${forumChannelName}" not found.`);
         return;
       }
+
+      const todoId = forumChannel.availableTags.find((tag) => tag.name == 'Todo')?.id;
+      let tags = [];
+      if (todoId) tags.push(todoId);
 
       let threads = [];
       for (const [baseIndex, problem] of problemMap.entries()) {
@@ -80,7 +83,7 @@ client.on("interactionCreate", async (interaction) => {
         const thread = await forumChannel.threads.create({
           name: `CF ${contest.id}${baseIndex} - ${problem.baseName}`,
           message: { content: `Send your code and discuss in the comments! :)`, embeds: [infoEmbed] },
-          appliedTags: [],
+          appliedTags: tags,
           autoArchiveDuration: 1440,
           reason: '',
         });
@@ -92,7 +95,7 @@ client.on("interactionCreate", async (interaction) => {
       
     } catch (error) {
       console.error("Error fetching contest data:", error);
-      await interaction.reply("An error occurred while fetching the contest data.");
+      await interaction.editReply("An error occurred while fetching the contest data.");
     }
   }
 });
