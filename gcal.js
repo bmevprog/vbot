@@ -15,14 +15,27 @@ function toRFC3339(secondsSinceEpoch) {
   return new Date(secondsSinceEpoch * 1000).toISOString();
 }
 
-function eventsAreEqual(existingEvent, newEvent) {
-  return (
-    existingEvent.summary === newEvent.summary &&
-    existingEvent.description === newEvent.description &&
-    new Date(existingEvent.start.dateTime).getTime() === new Date(newEvent.start.dateTime).getTime() &&
-    new Date(existingEvent.end.dateTime).getTime() === new Date(newEvent.end.dateTime).getTime() &&
-    existingEvent.location === newEvent.location
-  );
+function eventDiff(existingEvent, newEvent) {
+  var result = {}
+  if (existingEvent.summary !== newEvent.summary) {
+    result.summary = newEvent.summary;
+  }
+  if (existingEvent.description !== newEvent.description) {
+    result.description = newEvent.description;
+  }
+  if (new Date(existingEvent.start.dateTime).getTime() !== new Date(newEvent.start.dateTime).getTime()) {
+    result.start = newEvent.start;
+  }
+  if (new Date(existingEvent.end.dateTime).getTime() !== new Date(newEvent.end.dateTime).getTime()) {
+    result.end = newEvent.end;
+  }
+  if (existingEvent.location !== newEvent.location) {
+    result.location = newEvent.location;
+  }
+  if (Object.keys(result).length === 0) {
+    return null;
+  }
+  return result;
 }
 
 async function updateGoogleCalendar(auth) {
@@ -51,14 +64,14 @@ async function updateGoogleCalendar(auth) {
         timeZone: 'UTC',
       },
       attendees: [{ email: 'viktoria.nemkin@gmail.com' }],
-      location: location,
-      colorId: '5', // Yellow
+      location: location
     };
 
     const existingEvent = existingEvents.find(e => e.location === location);
 
     if (existingEvent) {
-      if(!eventsAreEqual(existingEvent, event)) {
+      var diff = eventDiff(existingEvent, event);
+      if(diff) {
         await calendar.events.update({
           calendarId: 'primary',
           eventId: existingEvent.id,
