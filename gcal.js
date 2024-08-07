@@ -16,6 +16,7 @@ const CREDENTIALS_PATH = join(cwd(), 'gcal_credentials.json');
 
 /**
  * Reads previously authorized credentials from the save file.
+ *
  * @return {Promise<OAuth2Client|null>}
  */
 async function loadSavedCredentialsIfExist() {
@@ -30,6 +31,7 @@ async function loadSavedCredentialsIfExist() {
 
 /**
  * Serializes credentials to a file compatible with GoogleAuth.fromJSON.
+ *
  * @param {OAuth2Client} client
  * @return {Promise<void>}
  */
@@ -98,6 +100,7 @@ async function updateCalendar(auth) {
   for (const contest of contests) {
     const start = toRFC3339(contest.startTimeSeconds);
     const end = toRFC3339(contest.startTimeSeconds + contest.durationSeconds);
+    const location = `https://codeforces.com/contests/${contest.id}`;
 
     const event = {
       summary: contest.name,
@@ -111,34 +114,40 @@ async function updateCalendar(auth) {
         timeZone: 'UTC',
       },
       attendees: [{ email: 'versenyprogramozas@gmail.com' }],
-      id: `codeforces-${contest.id}`,
+      location: location,
     };
 
-    try {
-      // Try to get the event by ID
-      await calendar.events.get({
-        calendarId: 'primary',
-        eventId: event.id,
-      });
+    // Fetch events with location containing 'codeforces.com'
+    const { data: { items: existingEvents } } = await calendar.events.list({
+      calendarId: 'primary',
+      q: 'codeforces.com',
+    });
 
-      // If found, update it
-      await calendar.events.update({
-        calendarId: 'primary',
-        eventId: event.id,
-        requestBody: event,
-      });
-      console.log(`Updated event: ${contest.name}`);
-    } catch (err) {
-      // If not found, create a new event
-      if (err.code === 404) {
-        await calendar.events.insert({
+    // Find an event that matches the contest URL
+    const existingEvent = existingEvents.find(e => e.location === location);
+
+    if (existingEvent) {
+      // Check if the event details need to be updated
+      if (
+        existingEvent.summary !== event.summary ||
+        existingEvent.start.dateTime !== event.start.dateTime ||
+        existingEvent.end.dateTime !== event.end.dateTime
+      ) {
+        // Update existing event
+        await calendar.events.update({
           calendarId: 'primary',
+          eventId: existingEvent.id,
           requestBody: event,
         });
-        console.log(`Added new event: ${contest.name}`);
-      } else {
-        console.error(`Error accessing event: ${err.message}`);
+        console.log(`Updated event: ${contest.name}`);
       }
+    } else {
+      // Create a new event
+      await calendar.events.insert({
+        calendarId: 'primary',
+        requestBody: event,
+      });
+      console.log(`Added new event: ${contest.name}`);
     }
   }
 }
