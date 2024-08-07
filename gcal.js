@@ -1,105 +1,28 @@
-import { promises as fs } from 'fs';
-import { join } from 'path';
-import { cwd } from 'process';
-import { authenticate } from '@google-cloud/local-auth';
 import { google } from 'googleapis';
 import fetch from 'node-fetch';
+import { authorize } from './gcal_client.js';
 
-/**
- * Google Calendar API setup
- * If modifying these scopes, delete gcal_token.json.
- */
-const SCOPES = ['https://www.googleapis.com/auth/calendar'];
-/**
- * The file token.json stores the user's access and refresh tokens, and is
- * created automatically when the authorization flow completes for the first
- * time.
- */
-const TOKEN_PATH = join(cwd(), 'gcal_token.json');
-const CREDENTIALS_PATH = join(cwd(), 'gcal_credentials.json');
-
-/**
- * Reads previously authorized credentials from the save file.
- *
- * @return {Promise<OAuth2Client|null>}
- */
-async function loadSavedCredentialsIfExist() {
-  try {
-    const content = await fs.readFile(TOKEN_PATH);
-    const credentials = JSON.parse(content);
-    return google.auth.fromJSON(credentials);
-  } catch (err) {
-    return null;
-  }
-}
-
-/**
- * Serializes credentials to a file compatible with GoogleAuth.fromJSON.
- *
- * @param {OAuth2Client} client
- * @return {Promise<void>}
- */
-async function saveCredentials(client) {
-  const content = await fs.readFile(CREDENTIALS_PATH);
-  const keys = JSON.parse(content);
-  const key = keys.installed || keys.web;
-  const payload = JSON.stringify({
-    type: 'authorized_user',
-    client_id: key.client_id,
-    client_secret: key.client_secret,
-    refresh_token: client.credentials.refresh_token,
-  });
-  await fs.writeFile(TOKEN_PATH, payload);
-}
-
-/**
- * Load or request or authorization to call APIs.
- *
- */
-async function authorize() {
-  let client = await loadSavedCredentialsIfExist();
-  if (client) {
-    return client;
-  }
-  client = await authenticate({
-    scopes: SCOPES,
-    keyfilePath: CREDENTIALS_PATH,
-  });
-  if (client.credentials) {
-    await saveCredentials(client);
-  }
-  return client;
-}
-
-/**
- * Get upcoming contests from Codeforces API.
- */
 async function fetchUpcomingContests() {
   const response = await fetch('https://codeforces.com/api/contest.list');
   const data = await response.json();
-
   if (data.status !== 'OK') {
     throw new Error('Failed to fetch contests from Codeforces');
   }
-
-  // Filter contests with 'BEFORE' status
   return data.result.filter(contest => contest.phase === 'BEFORE');
 }
 
-/**
- * Convert seconds since epoch to RFC3339 format
- */
 function toRFC3339(secondsSinceEpoch) {
   return new Date(secondsSinceEpoch * 1000).toISOString();
 }
 
-/**
- * Add or update contests in Google Calendar.
- * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
- */
-async function updateCalendar(auth) {
+async function updateGoogleCalendar(auth) {
   const calendar = google.calendar({ version: 'v3', auth });
   const contests = await fetchUpcomingContests();
+
+  const { data: { items: existingEvents } } = await calendar.events.list({
+    calendarId: 'primary',
+    q: 'codeforces.com',
+  });
 
   for (const contest of contests) {
     const start = toRFC3339(contest.startTimeSeconds);
@@ -122,17 +45,9 @@ async function updateCalendar(auth) {
       colorId: '5', // Yellow
     };
 
-    // Fetch events with location containing 'codeforces.com'
-    const { data: { items: existingEvents } } = await calendar.events.list({
-      calendarId: 'primary',
-      q: 'codeforces.com',
-    });
-
-    // Find an event that matches the contest URL
     const existingEvent = existingEvents.find(e => e.location === location);
 
     if (existingEvent) {
-      // Update existing event
       await calendar.events.update({
         calendarId: 'primary',
         eventId: existingEvent.id,
@@ -140,7 +55,6 @@ async function updateCalendar(auth) {
       });
       console.log(`Updated event: ${contest.name}`);
     } else {
-      // Create a new event
       await calendar.events.insert({
         calendarId: 'primary',
         requestBody: event,
@@ -150,4 +64,4 @@ async function updateCalendar(auth) {
   }
 }
 
-authorize().then(updateCalendar).catch(console.error);
+authorize().then(updateGoogleCalendar).catch(console.error);
