@@ -11,8 +11,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/local-auth": "^3.0.1",
     "discord.js": "^14.15.3",
     "dotenv": "^16.4.5",
+    "fs": "^0.0.1-security",
+    "googleapis": "^140.0.1",
     "node-fetch": "^3.3.2"
   }
 }
