@@ -117,7 +117,7 @@ async function updateCalendar(auth) {
         dateTime: end,
         timeZone: 'UTC',
       },
-      attendees: [{ email: 'versenyprogramozas@gmail.com' }],
+      attendees: [{ email: 'viktoria.nemkin@gmail.com' }],
       location: location,
       colorId: '5', // Yellow
     };
