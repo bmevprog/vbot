@@ -6,10 +6,9 @@ import {
   GuildScheduledEventPrivacyLevel,
   GuildScheduledEventEntityType
 } from "discord.js";
-import { contest2event, event2discord } from "./event_transforms.js";
 
-dotenv.config({ path: "public.env" });
-dotenv.config({ path: "private.env" });
+//dotenv.config({ path: "public.env" });
+//dotenv.config({ path: "private.env" });
 
 let {
   DISCORD_TOKEN,
@@ -20,12 +19,14 @@ let {
   UPCOMING_FREQ,
   UPCOMING_DELTA,
   DAILY_NOTIF_HOUR,
+  DAILY_NOTIF_MIN,
   DAILY_NOTIF_DELTA,
 } = process.env;
 
 UPCOMING_FREQ = eval(UPCOMING_FREQ)
 UPCOMING_DELTA = eval(UPCOMING_DELTA)
 DAILY_NOTIF_HOUR = eval(DAILY_NOTIF_HOUR)
+DAILY_NOTIF_MIN = eval(DAILY_NOTIF_MIN)
 DAILY_NOTIF_DELTA = eval(DAILY_NOTIF_DELTA)
 
 const client = new Client({
@@ -102,7 +103,7 @@ async function ping_upcoming() {
     });
 
     console.log();
-    console.log("Pinging events starting:");
+    console.log("Contest reminders: Starting");
     const now = new Date();
     console.log(now.toString());
     console.log();
@@ -123,7 +124,7 @@ async function ping_upcoming() {
     }
   } catch (error) {
     const channel = await guild.channels.fetch(BOT_CHANNEL);
-    channel.send(error.toString());
+    channel.send("Contest reminders: Starting error:\n" + error.stack);
   }
 }
 
@@ -137,7 +138,7 @@ async function ping_tomorrow() {
     const channel = await guild.channels.fetch(CODEFORCES_CHANNEL);
 
     console.log();
-    console.log("Pinging events tomorrow:");
+    console.log("Contest reminders: Tomorrow");
     const now = new Date();
     console.log(now.toString());
     console.log();
@@ -157,12 +158,12 @@ async function ping_tomorrow() {
     }
   } catch (error) {
     const channel = await guild.channels.fetch(BOT_CHANNEL);
-    channel.send(error.toString());
+    channel.send("Contest reminders: Tomorrow error:\n" + error.stack);
   }
 }
 
 client.once("ready", async () => {
   console.log("Client ready!")
   setInterval(ping_upcoming, UPCOMING_FREQ);
-  schedule.scheduleJob('0 ' + DAILY_NOTIF_HOUR + ' * * *', ping_tomorrow);
+  schedule.scheduleJob(DAILY_NOTIF_MIN + ' ' + DAILY_NOTIF_HOUR + ' * * *', ping_tomorrow);
 });
