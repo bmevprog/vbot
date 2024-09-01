@@ -16,9 +16,8 @@ client.login(DISCORD_TOKEN);
 async function ping_events() {
   const guild = await client.guilds.fetch(DISCORD_SERVER);
   const events = await guild.scheduledEvents.fetch();
-
+  const role = "<@&" + CODEFORCES_ROLE + "> ";
   const channel = await guild.channels.fetch(CODEFORCES_CHANNEL);
-
   const notifs = await channel.messages.fetch().then(messages => {
     return messages
       .filter(msg => msg.content.includes("codeforces.com"))
@@ -26,10 +25,14 @@ async function ping_events() {
       .map(msg => msg.content.split(' ').find(word => word.includes("codeforces.com")));
   });
 
-  const role = "<@&" + CODEFORCES_ROLE + "> ";
   const now = new Date();
+  console.log(now.toString());
+  console.log();
 
   for (const [id, event] of events) {
+    console.log(event.name)
+    console.log(event.scheduledStartAt.toString());
+
     const url = event.entityMetadata.location;
     if(!url.includes("codeforces.com")) continue;
     if(notifs.find(n => n.includes(url))) continue;
@@ -44,7 +47,6 @@ async function ping_events() {
 }
 
 client.once("ready", async () => {
-  console.log("Bot is ready!");
   await ping_events();
-  console.log("Done.");
+  await client.destroy();
 });
