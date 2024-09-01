@@ -5,8 +5,8 @@ import { authenticate } from '@google-cloud/local-auth';
 import { google } from 'googleapis';
 
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
-const TOKEN_PATH = join(cwd(), 'gcal_token.json');
-const CREDENTIALS_PATH = join(cwd(), 'gcal_credentials.json');
+const TOKEN_PATH = join(cwd(), 'tokens/gcal_token.json');
+const CREDENTIALS_PATH = join(cwd(), 'tokens/gcal_credentials.json');
 
 
 async function loadSavedCredentialsIfExist() {
