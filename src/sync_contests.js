@@ -34,7 +34,7 @@ async function update_discord_events() {
   for (const [id, event] of events) {
     const url = event.entityMetadata.location;
 
-    const contest = contests.filter(c => c.url === url)[0];
+    const contest = contests.find(c => c.url === url);
     if (contest) guild.scheduledEvents.edit(event, event2discord(contest));
 
     contests = contests.filter(c => c.url !== url);
@@ -50,5 +50,3 @@ client.once("ready", async () => {
   await update_discord_events();
   console.log("Done.");
 });
-
-// export { get_contests }
