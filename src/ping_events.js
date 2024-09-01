@@ -47,5 +47,5 @@ async function ping_events() {
 
 client.once("ready", async () => {
   await ping_events();
-  await client.destroy();
+  setInterval(ping_events, 1 * 60 * 1000);
 });
