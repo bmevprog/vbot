@@ -2,7 +2,8 @@
 import schedule from 'node-schedule'
 import { Client, GatewayIntentBits, Partials } from "discord.js";
 
-//dotenv.config({ path: ".env" });
+//dotenv.config({ path: "public.env"});
+//dotenv.config({ path: "private.env" });
 const { DISCORD_TOKEN, DISCORD_SERVER, CODEFORCES_CHANNEL, CODEFORCES_ROLE } = process.env;
 
 const client = new Client({
