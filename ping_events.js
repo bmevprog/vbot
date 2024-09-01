@@ -20,8 +20,6 @@ UPCOMING_DELTA = eval(UPCOMING_DELTA)
 DAILY_NOTIF_HOUR = eval(DAILY_NOTIF_HOUR)
 DAILY_NOTIF_DELTA = eval(DAILY_NOTIF_DELTA)
 
-console.log(UPCOMING_FREQ);
-
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
   partials: [Partials.Message, Partials.GuildScheduledEvent, Partials.Channel, Partials.Reaction],
