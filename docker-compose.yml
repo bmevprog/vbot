@@ -1,6 +1,7 @@
 version: '3'
 services:
   ping-events:
+    container_name: ping-events
     build: .
     env_file: 
       - private.env
