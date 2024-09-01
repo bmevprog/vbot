@@ -1,0 +1,10 @@
+version: '3'
+services:
+  ping-events:
+    build: .
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - DISCORD_SERVER=${DISCORD_SERVER}
+      - CODEFORCES_CHANNEL=${CODEFORCES_CHANNEL}
+      - CODEFORCES_ROLE=${CODEFORCES_ROLE}
+    restart: unless-stopped
