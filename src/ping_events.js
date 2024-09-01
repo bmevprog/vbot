@@ -41,9 +41,8 @@ async function ping_events() {
     if(delta<0 || 2*24*60*60*1000<delta) continue;
 
     const timestamp = "<t:"+event.scheduledStartTimestamp/1000+":R>";
-    channel.send(role + url + " starting " + timestamp+"!");
+    channel.send(role + url + " starting " + timestamp+", **register**!");
   }
-
 }
 
 client.once("ready", async () => {
