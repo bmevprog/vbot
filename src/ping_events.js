@@ -39,7 +39,7 @@ async function ping_upcoming() {
     if(notifs.find(n => n.includes(url))) continue;
 
     const delta = event.scheduledStartAt.getTime() - now.getTime();
-    if(delta<0 || 2*24*60*60*1000<delta) continue;
+    if(delta<0 || 30*60*1000<delta) continue;
 
     const timestamp = "<t:"+event.scheduledStartTimestamp/1000+":R>";
     channel.send(role + url + " starting " + timestamp+", **register**!");
@@ -66,7 +66,7 @@ async function ping_tomorrow() {
     if(!url.includes("codeforces.com")) continue;
 
     const delta = event.scheduledStartAt.getTime() - now.getTime();
-    if(delta<0 || 3*24*60*60*1000<delta) continue;
+    if(delta<0 || 26*60*60*1000<delta) continue;
 
     const timestamp = "<t:"+event.scheduledStartTimestamp/1000+":t>";
     channel.send(role + url + " at " + timestamp+" tomorrow.");
@@ -76,5 +76,5 @@ async function ping_tomorrow() {
 client.once("ready", async () => {
   console.log("Client ready!")
   setInterval(ping_upcoming, 10 * 1000);
-  schedule.scheduleJob('29 18 * * *', ping_tomorrow);
+  schedule.scheduleJob('0 22 * * *', ping_tomorrow);
 });
