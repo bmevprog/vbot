@@ -1,13 +1,7 @@
 import dotenv from "dotenv";
 import fetch from 'node-fetch';
-
-import {
-  Client,
-  GatewayIntentBits,
-  Partials,
-  GuildScheduledEventPrivacyLevel,
-  GuildScheduledEventEntityType
-} from "discord.js";
+import { Client, GatewayIntentBits, Partials } from "discord.js";
+import { contest2event, event2discord } from "./event_transforms.js";
 
 dotenv.config({ path: ".env" });
 const { DISCORD_TOKEN, DISCORD_SERVER } = process.env;
