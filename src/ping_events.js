@@ -4,7 +4,7 @@ import { Client, GatewayIntentBits, Partials } from "discord.js";
 import { event2discord } from "./event_transforms.js";
 
 dotenv.config({ path: ".env" });
-const { DISCORD_TOKEN, DISCORD_SERVER, CODEFORCES_CHANNEL } = process.env;
+const { DISCORD_TOKEN, DISCORD_SERVER, CODEFORCES_CHANNEL, CODEFORCES_ROLE } = process.env;
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
@@ -22,20 +22,23 @@ async function ping_events() {
   const notifs = await channel.messages.fetch().then(messages => {
     return messages
       .filter(msg => msg.content.includes("codeforces.com"))
-      .filter(msg => msg.content.includes("in 30 minutes"))
+      .filter(msg => msg.content.includes("starting"))
       .map(msg => msg.content.split(' ').find(word => word.includes("codeforces.com")));
   });
 
-  console.log(notifs);
-  
+  const role = "<@&" + CODEFORCES_ROLE + "> ";
+  const now = new Date();
+
   for (const [id, event] of events) {
     const url = event.entityMetadata.location;
     if(!url.includes("codeforces.com")) continue;
+    if(notifs.find(n => n.includes(url))) continue;
 
-    console.log(notifs.find(n => n.includes(url)));
-    console.log("checked");
+    const delta = event.scheduledStartAt.getTime() - now.getTime();
+    if(delta<0 || 2*24*60*60*1000<delta) continue;
 
-    channel.send(url + " in 30 minutes");
+    const timestamp = "<t:"+event.scheduledStartTimestamp/1000+":R>";
+    channel.send(role + url + " starting " + timestamp+"!");
   }
 
 }
