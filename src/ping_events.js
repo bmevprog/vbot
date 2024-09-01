@@ -46,6 +46,8 @@ async function ping_events() {
 }
 
 client.once("ready", async () => {
+  console.log("Running:");
   await ping_events();
-  setInterval(ping_events, 1 * 60 * 1000);
+  setInterval(ping_events, 10 * 1000);
+  console.log();
 });
