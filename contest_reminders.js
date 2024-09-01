@@ -72,20 +72,37 @@ async function get_contests() {
 }
 
 async function update_discord_events() {
-  let contests = await get_contests();
+  try {
+    console.log();
+    console.log("Contest reminders: Codeforces update");
+    const now = new Date();
+    console.log(now.toString());
+    console.log();
+    let contests = await get_contests();
 
-  const guild = await client.guilds.fetch(DISCORD_SERVER);
-  const events = await guild.scheduledEvents.fetch();
+    const guild = await client.guilds.fetch(DISCORD_SERVER);
+    const events = await guild.scheduledEvents.fetch();
 
-  for (const [id, event] of events) {
-    const url = event.entityMetadata.location;
-    const contest = contests.find(c => c.url === url);
-    if (contest) guild.scheduledEvents.edit(event, event2discord(contest));
-    contests = contests.filter(c => c.url !== url);
-  }
+    for (const [id, event] of events) {
+      const url = event.entityMetadata.location;
+      const contest = contests.find(c => c.url === url);
+      if (contest) {
+        guild.scheduledEvents.edit(event, event2discord(contest));
+        console.log(event.name+" updated");
+        console.log(event.scheduledStartAt.toString());
+      }
+      contests = contests.filter(c => c.url !== url);
+    }
 
-  for (const contest of contests) {
-    guild.scheduledEvents.create(event2discord(contest));
+    for (const contest of contests) {
+      guild.scheduledEvents.create(event2discord(contest));
+      console.log(contest.name+" created");
+      console.log(contest.start.toString());
+    }
+  } catch (error) {
+    const guild = await client.guilds.fetch(DISCORD_SERVER);
+    const channel = await guild.channels.fetch(BOT_CHANNEL);
+    channel.send("Contest reminders: Codeforces update error:\n" + error.stack);
   }
 }
 
