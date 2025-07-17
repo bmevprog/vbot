@@ -131,6 +131,12 @@ async function ping_upcoming() {
 
       const url = event.entityMetadata.location;
       if (!url || !url.includes("codeforces.com")) continue;
+
+      const botChannel = await guild.channels.fetch(BOT_CHANNEL);
+      botChannel.send(JSON.stringify(event));
+      botChannel.send(JSON.stringify(event.entityMetadata));
+      botChannel.send(JSON.stringify(url));
+
       if (notifs.find(n => n.includes(url))) continue;
 
       const delta = event.scheduledStartAt.getTime() - now.getTime();
@@ -165,6 +171,12 @@ async function ping_tomorrow() {
       console.log(event.scheduledStartAt.toString());
 
       const url = event.entityMetadata.location;
+
+      const botChannel = await guild.channels.fetch(BOT_CHANNEL);
+      botChannel.send(JSON.stringify(event));
+      botChannel.send(JSON.stringify(event.entityMetadata));
+      botChannel.send(JSON.stringify(url));
+
       if (!url || !url.includes("codeforces.com")) continue;
 
       const delta = event.scheduledStartAt.getTime() - now.getTime();
