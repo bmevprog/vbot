@@ -23,6 +23,8 @@ let {
   DAILY_NOTIF_DELTA,
 } = process.env;
 
+CODEFORCES_CHANNEL=BOT_CHANNEL
+
 UPCOMING_FREQ = eval(UPCOMING_FREQ)
 UPCOMING_DELTA = eval(UPCOMING_DELTA)
 DAILY_NOTIF_HOUR = eval(DAILY_NOTIF_HOUR)
@@ -193,6 +195,8 @@ async function ping_tomorrow() {
 
 client.once("ready", async () => {
   console.log("Client ready!")
+  ping_upcoming();
+  
   setInterval(ping_upcoming, UPCOMING_FREQ);
   schedule.scheduleJob(DAILY_NOTIF_MIN + ' ' + DAILY_NOTIF_HOUR + ' * * *', ping_tomorrow);
 });
