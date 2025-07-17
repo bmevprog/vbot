@@ -1,4 +1,3 @@
-version: '3'
 services:
   ping-events:
     container_name: ping-events
