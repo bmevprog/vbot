@@ -23,8 +23,6 @@ let {
   DAILY_NOTIF_DELTA,
 } = process.env;
 
-CODEFORCES_CHANNEL=BOT_CHANNEL
-
 UPCOMING_FREQ = eval(UPCOMING_FREQ)
 UPCOMING_DELTA = eval(UPCOMING_DELTA)
 DAILY_NOTIF_HOUR = eval(DAILY_NOTIF_HOUR)
@@ -133,12 +131,6 @@ async function ping_upcoming() {
 
       const url = event.entityMetadata.location;
       if (!url || !url.includes("codeforces.com")) continue;
-
-      const botChannel = await guild.channels.fetch(BOT_CHANNEL);
-      botChannel.send(JSON.stringify(event));
-      botChannel.send(JSON.stringify(event.entityMetadata));
-      botChannel.send(JSON.stringify(url));
-
       if (notifs.find(n => n.includes(url))) continue;
 
       const delta = event.scheduledStartAt.getTime() - now.getTime();
@@ -173,12 +165,6 @@ async function ping_tomorrow() {
       console.log(event.scheduledStartAt.toString());
 
       const url = event.entityMetadata.location;
-
-      const botChannel = await guild.channels.fetch(BOT_CHANNEL);
-      botChannel.send(JSON.stringify(event));
-      botChannel.send(JSON.stringify(event.entityMetadata));
-      botChannel.send(JSON.stringify(url));
-
       if (!url || !url.includes("codeforces.com")) continue;
 
       const delta = event.scheduledStartAt.getTime() - now.getTime();
@@ -195,8 +181,6 @@ async function ping_tomorrow() {
 
 client.once("ready", async () => {
   console.log("Client ready!")
-  ping_upcoming();
-  
   setInterval(ping_upcoming, UPCOMING_FREQ);
   schedule.scheduleJob(DAILY_NOTIF_MIN + ' ' + DAILY_NOTIF_HOUR + ' * * *', ping_tomorrow);
 });
