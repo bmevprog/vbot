@@ -130,7 +130,7 @@ async function ping_upcoming() {
       console.log(event.scheduledStartAt.toString());
 
       const url = event.entityMetadata.location;
-      if (url && !url.includes("codeforces.com")) continue;
+      if (!url || !url.includes("codeforces.com")) continue;
       if (notifs.find(n => n.includes(url))) continue;
 
       const delta = event.scheduledStartAt.getTime() - now.getTime();
