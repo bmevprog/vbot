@@ -165,7 +165,7 @@ async function ping_tomorrow() {
       console.log(event.scheduledStartAt.toString());
 
       const url = event.entityMetadata.location;
-      if (!url.includes("codeforces.com")) continue;
+      if (!url || !url.includes("codeforces.com")) continue;
 
       const delta = event.scheduledStartAt.getTime() - now.getTime();
       if (delta < 0 || DAILY_NOTIF_DELTA < delta) continue;
