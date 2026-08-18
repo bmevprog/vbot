@@ -133,3 +133,12 @@ dist
 # API credentials
 gcal_credentials.json
 gcal_token.json
+
+# Runtime data (streaks/daily problems)
+data/
+
+
+
+# Added by cargo
+
+/target
