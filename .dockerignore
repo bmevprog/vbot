@@ -1,0 +1,6 @@
+target
+old
+node_modules
+data
+.git
+*.env
