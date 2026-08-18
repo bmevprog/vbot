@@ -5,8 +5,9 @@
   "type": "module",
   "main": "bot.js",
   "scripts": {
-    "start": "node bot.js",
-    "deploy": "node deploy.js"
+    "start": "node bot.ts",
+    "deploy": "node deploy.ts",
+    "typecheck": "tsc --noEmit"
   },
   "author": "",
   "license": "ISC",
@@ -15,5 +16,10 @@
     "dotenv": "^16.4.5",
     "node-fetch": "^3.3.2",
     "node-schedule": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/node-schedule": "^2.1.8",
+    "typescript": "^7.0.2"
   }
 }
