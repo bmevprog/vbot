@@ -11,6 +11,7 @@ pub struct CFProblem {
 
 #[derive(Deserialize, Clone)]
 pub struct CFSubmission {
+    pub id: i64,
     pub verdict: String,
     pub problem: Option<CFProblem>,
     #[serde(rename = "creationTimeSeconds")]
@@ -199,6 +200,7 @@ mod tests {
             "status": "OK",
             "result": [
                 {
+                    "id": 123456789,
                     "verdict": "OK",
                     "problem": { "contestId": 1932, "index": "A" },
                     "creationTimeSeconds": 1787000000
