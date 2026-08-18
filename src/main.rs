@@ -41,6 +41,8 @@ async fn main() {
                 commands::streaks::streaks(),
                 commands::cf::cf(),
                 commands::debug::debug(),
+                commands::rand::rand(),
+                commands::setrating::setrating(),
             ],
             ..Default::default()
         })

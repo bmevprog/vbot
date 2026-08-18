@@ -10,6 +10,7 @@ services:
       - ./Cargo.toml:/app/Cargo.toml:Z
       - ./Cargo.lock:/app/Cargo.lock:Z
       - ./data:/app/data:Z
+      - ./public.env:/app/public.env:Z
       - cargo-target:/app/target
     restart: unless-stopped
 
