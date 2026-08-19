@@ -17,7 +17,15 @@ pub async fn new(ctx: Context<'_>) -> Result<(), Error> {
     let data = ctx.data();
     let channel_id = data.config.streaks_problem_channel;
 
-    match post_daily_problem(&data.config.store, channel_id, ctx.http(), true).await
+    match post_daily_problem(
+        &data.config.store,
+        data.config.get_min_rating(),
+        data.config.get_max_rating(),
+        channel_id,
+        ctx.http(),
+        true,
+    )
+    .await
     {
         Ok(Some(message)) => {
             ctx.say(format!("Rerolled today's problem: {}", message.link()))

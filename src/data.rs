@@ -37,10 +37,10 @@ pub struct Store {
 }
 
 impl Store {
-    pub fn new(dir: PathBuf, min_rating: i64, max_rating: i64) -> Self {
+    pub fn new(dir: PathBuf) -> Self {
         Self {
             dir,
-            codeforces: Codeforces::new(min_rating, max_rating),
+            codeforces: Codeforces::new(),
         }
     }
 
@@ -107,7 +107,7 @@ mod tests {
     #[test]
     fn save_and_load_roundtrip() {
         let dir = temp_dir("roundtrip");
-        let store = Store::new(dir.clone(), 1600, 2000);
+        let store = Store::new(dir.clone());
 
         let daily = DailyProblem {
             date: "2026-08-18".into(),
@@ -175,7 +175,7 @@ mod tests {
         .unwrap();
         fs::write(dir.join("past_problems.json"), r#"["1932A", "1931B"]"#).unwrap();
 
-        let store = Store::new(dir.clone(), 1600, 2000);
+        let store = Store::new(dir.clone());
         let daily = store.daily().unwrap();
         assert_eq!(daily.contest_id, 1932);
         assert_eq!(daily.valid_until, 1787086800000);
@@ -195,7 +195,7 @@ mod tests {
     #[test]
     fn missing_or_corrupt_files_fall_back_safely() {
         let dir = temp_dir("missing");
-        let store = Store::new(dir.clone(), 1600, 2000);
+        let store = Store::new(dir.clone());
         assert!(store.daily().is_none());
         assert!(store.handles().is_empty());
         assert!(store.streaks().is_empty());

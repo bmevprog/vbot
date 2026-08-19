@@ -17,7 +17,16 @@ pub async fn run_scheduler(data: Arc<Data>) {
         let duration = (next - now).to_std().unwrap_or_default();
         tokio::time::sleep(duration).await;
 
-        if let Err(error) = post_daily_problem(&data.config.store, channel_id, &http, false).await {
+        if let Err(error) = post_daily_problem(
+            &data.config.store,
+            data.config.get_min_rating(),
+            data.config.get_max_rating(),
+            channel_id,
+            &http,
+            false,
+        )
+        .await
+        {
             tracing::error!("Daily problem posting failed: {error}");
         }
     }
@@ -28,6 +37,8 @@ async fn catch_up(data: &Arc<Data>, http: &Http) {
     if hour >= POST_HOUR {
         if let Err(error) = post_daily_problem(
             &data.config.store,
+            data.config.get_min_rating(),
+            data.config.get_max_rating(),
             data.config.streaks_problem_channel,
             http,
             false,

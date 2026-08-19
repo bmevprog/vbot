@@ -3,6 +3,8 @@ pub mod debug;
 pub mod done;
 pub mod link;
 pub mod new;
+pub mod rand;
+pub mod setrating;
 pub mod streaks;
 
 use crate::config::Config;

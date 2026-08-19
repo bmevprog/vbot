@@ -56,6 +56,8 @@ pub fn problem_key(contest_id: i64, index: &str) -> String {
 
 pub async fn post_daily_problem(
     store: &Store,
+    min_rating: i64,
+    max_rating: i64,
     channel_id: u64,
     http: &serenity::all::Http,
     force_new: bool,
@@ -69,7 +71,7 @@ pub async fn post_daily_problem(
     }
 
     let past = store.past_problems();
-    let candidates = store.codeforces.problemset().await?;
+    let candidates = store.codeforces.problemset(min_rating, max_rating).await?;
     let pool: Vec<&Candidate> = candidates
         .iter()
         .filter(|c| !past.contains(&problem_key(c.contest_id, &c.index)))

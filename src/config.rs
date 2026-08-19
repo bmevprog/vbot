@@ -1,5 +1,8 @@
 use anyhow::{anyhow, bail};
+use envfile::EnvFile;
+use std::fs;
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use crate::data::Store;
@@ -13,6 +16,8 @@ pub struct Config {
     pub codeforces_role: u64,
     pub streaks_problem_channel: u64,
     pub streaks_admin_role: String,
+    pub min_rating: Arc<Mutex<i64>>,
+    pub max_rating: Arc<Mutex<i64>>,
     pub store: Store,
     pub upcoming_freq: Duration,
     pub upcoming_delta: Duration,
@@ -77,11 +82,9 @@ impl Config {
             codeforces_role: required("CODEFORCES_ROLE", parse_u64)?,
             streaks_problem_channel: required("STREAKS_PROBLEM_CHANNEL", parse_u64)?,
             streaks_admin_role: required("STREAKS_ADMIN_ROLE", parse_string)?,
-            store: Store::new(
-                PathBuf::from(required("DATA_DIR", parse_string)?),
-                problem_min_rating,
-                problem_max_rating,
-            ),
+            store: Store::new(PathBuf::from(required("DATA_DIR", parse_string)?)),
+            min_rating: Arc::new(Mutex::new(problem_min_rating)),
+            max_rating: Arc::new(Mutex::new(problem_max_rating)),
             upcoming_freq: required("UPCOMING_FREQ", parse_duration_ms)?,
             upcoming_delta: required("UPCOMING_DELTA", parse_duration_ms)?,
             daily_notif_hour: required("DAILY_NOTIF_HOUR", parse_u32)?,
@@ -89,6 +92,42 @@ impl Config {
             daily_notif_delta: required("DAILY_NOTIF_DELTA", parse_duration_ms)?,
         })
     }
+
+    pub fn get_min_rating(&self) -> i64 {
+        *self.min_rating.lock().unwrap()
+    }
+
+    pub fn get_max_rating(&self) -> i64 {
+        *self.max_rating.lock().unwrap()
+    }
+
+    pub fn set_rating_range(&self, min_rating: i64, max_rating: i64) {
+        *self.min_rating.lock().unwrap() = min_rating;
+        *self.max_rating.lock().unwrap() = max_rating;
+    }
+}
+
+/// Rewrite `PROBLEM_MIN_RATING`/`PROBLEM_MAX_RATING` in the first env file in the
+/// working directory that contains them (public.env, private.env, then .env).
+pub fn persist_rating_range(min_rating: i64, max_rating: i64) -> anyhow::Result<()> {
+    let name = ["public.env", "private.env", ".env"]
+        .iter()
+        .find(|name| {
+            fs::read_to_string(name).is_ok_and(|content| {
+                content.contains("PROBLEM_MIN_RATING") || content.contains("PROBLEM_MAX_RATING")
+            })
+        })
+        .ok_or_else(|| anyhow!("no env file with rating keys found"))?;
+
+    rewrite_env_file(PathBuf::from(name), min_rating, max_rating)
+}
+
+fn rewrite_env_file(path: PathBuf, min_rating: i64, max_rating: i64) -> anyhow::Result<()> {
+    let mut file = EnvFile::new(&path)?;
+    file.update("PROBLEM_MIN_RATING", &min_rating.to_string());
+    file.update("PROBLEM_MAX_RATING", &max_rating.to_string());
+    file.write()?;
+    Ok(())
 }
 
 #[cfg(test)]
@@ -190,5 +229,27 @@ mod tests {
         std::env::set_var("DAILY_NOTIF_DELTA", "1000");
         let err = Config::from_env().unwrap_err();
         assert!(err.to_string().contains("must be lower"));
+    }
+
+    #[test]
+    fn rewrite_env_file_updates_rating_keys() {
+        let dir = std::env::temp_dir().join(format!("vbot-envfile-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("public.env");
+        fs::write(
+            &path,
+            "DISCORD_SERVER=123\nPROBLEM_MIN_RATING=1600\nPROBLEM_MAX_RATING=2000\n",
+        )
+        .unwrap();
+
+        rewrite_env_file(path.clone(), 800, 1000).unwrap();
+
+        let updated = fs::read_to_string(&path).unwrap();
+        assert!(updated.contains("PROBLEM_MIN_RATING=800"));
+        assert!(updated.contains("PROBLEM_MAX_RATING=1000"));
+        assert!(updated.contains("DISCORD_SERVER=123"));
+
+        let _ = fs::remove_dir_all(&dir);
     }
 }

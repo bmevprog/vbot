@@ -69,17 +69,13 @@ pub struct Candidate {
 #[derive(Clone, Debug)]
 pub struct Codeforces {
     pub client: reqwest::Client,
-    pub min_rating: i64,
-    pub max_rating: i64,
     pub candidates_cache: std::sync::Arc<std::sync::Mutex<Option<(std::time::Instant, Vec<Candidate>)>>>,
 }
 
 impl Codeforces {
-    pub fn new(min_rating: i64, max_rating: i64) -> Self {
+    pub fn new() -> Self {
         Self {
             client: reqwest::Client::new(),
-            min_rating,
-            max_rating,
             candidates_cache: std::sync::Arc::new(std::sync::Mutex::new(None)),
         }
     }
@@ -103,10 +99,14 @@ impl Codeforces {
             .ok_or_else(|| anyhow!("Codeforces API returned no result"))
     }
 
-    pub async fn problemset(&self) -> anyhow::Result<Vec<Candidate>> {
-        if let Some((at, cached)) = self.candidates_cache.lock().unwrap().as_ref() {
+    pub async fn problemset(&self, min_rating: i64, max_rating: i64) -> anyhow::Result<Vec<Candidate>> {
+        let cached = self.candidates_cache.lock().unwrap().clone();
+        if let Some((at, cached)) = cached {
             if at.elapsed() < std::time::Duration::from_secs(6 * 60 * 60) {
-                return Ok(cached.clone());
+                return Ok(cached
+                    .into_iter()
+                    .filter(|c| c.rating >= min_rating && c.rating <= max_rating)
+                    .collect());
             }
         }
 
@@ -115,25 +115,27 @@ impl Codeforces {
             .await?;
         let result = result.problems;
 
-        let candidates: Vec<Candidate> = result
+        let all: Vec<Candidate> = result
             .into_iter()
-            .filter(|p| {
-                p.rating
-                    .is_some_and(|r| r >= self.min_rating && r <= self.max_rating)
-            })
-            .map(|p| Candidate {
-                contest_id: p.contest_id,
-                index: p.index.clone(),
-                rating: p.rating.unwrap_or(0),
-                url: format!(
-                    "https://codeforces.com/contest/{}/problem/{}",
-                    p.contest_id, p.index
-                ),
+            .filter_map(|p| {
+                let rating = p.rating?;
+                Some(Candidate {
+                    contest_id: p.contest_id,
+                    index: p.index.clone(),
+                    rating,
+                    url: format!(
+                        "https://codeforces.com/contest/{}/problem/{}",
+                        p.contest_id, p.index
+                    ),
+                })
             })
             .collect();
 
-        *self.candidates_cache.lock().unwrap() = Some((std::time::Instant::now(), candidates.clone()));
-        Ok(candidates)
+        *self.candidates_cache.lock().unwrap() = Some((std::time::Instant::now(), all.clone()));
+        Ok(all
+            .into_iter()
+            .filter(|c| c.rating >= min_rating && c.rating <= max_rating)
+            .collect())
     }
 
     pub async fn user_status(&self, handle: &str) -> anyhow::Result<Vec<CFSubmission>> {
