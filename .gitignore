@@ -137,6 +137,9 @@ gcal_token.json
 # Runtime data (streaks/daily problems)
 data/
 
+# Plaintext dragon assets (the encrypted img.enc archive is tracked instead)
+/img/
+
 
 
 # Added by cargo

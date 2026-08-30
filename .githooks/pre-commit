@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+if [ ! -d img ]; then
+    echo "error: img/ is missing; decrypt img.enc before committing" >&2
+    exit 1
+fi
+
+python3 tools/imgcrypt.py encrypt img img.enc
+git add -- img.enc
