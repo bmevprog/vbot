@@ -139,9 +139,7 @@ data/
 
 # Plaintext dragon assets (the encrypted img.enc archive is tracked instead)
 /img/
-
-
+/.backup/
 
 # Added by cargo
-
 /target
